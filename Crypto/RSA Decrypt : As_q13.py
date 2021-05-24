@@ -90,14 +90,20 @@ def driver(input_cipher,p,q,n,e):
     for retrieved_val in retrieved_plain_text:
         retr_string = "retrieved_val : "+str(retrieved_val)
         print_final_val(retr_string)
+        print()
+        print_final_val("place_3 = "+str(retrieved_val)+" mod 26 ")
         place_3 = int(retrieved_val % 26)
         temp_place = (retrieved_val - place_3)/26
+        print_final_val("temp_place = " + str(retrieved_val - place_3) + "/26 ")
         place_2 = int(temp_place % 26)
+        print_final_val("place_2 = " + str(temp_place) + " mod 26 ")
         place_1 =int((temp_place - place_2) / 26)
+        print_final_val("place_1 = " + str(temp_place - place_2) + "/26 ")
         if place_1 > 25:
             place_1 = place_1%26
         fin_val = str(place_1)+" "+str(place_2)+" "+str(place_3)
-        print_final_val (fin_val)
+        print ()
+        #print_final_val (fin_val)
         plain_retrieved = [alphabets[place_1],alphabets[place_2],alphabets[place_3]]
         val1 = "place_1 : "+str(place_1)+" = "+str(plain_retrieved[0])
         val2 = "Place_2 : "+str(place_2)+" = "+str(plain_retrieved[1])
