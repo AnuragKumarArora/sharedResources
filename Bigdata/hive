@@ -114,7 +114,7 @@ HIVE- Basics
                 -2.2.5 Use sort by order to order your data. What do you observe ?
                         - select *  from wdi sort by reading2012,reading2011,reading2010,reading2009,reading2008,reading2007,reading2006,reading2005,
                                 reading2004,reading2003,reading2002,reading2001,reading1999,reading1998,reading1997,reading1996,reading1995,reading1994,
-                                reading1993,reading1992,reading1991,reading1990 sort by indicatorCode
+                                reading1993,reading1992,reading1991,reading1990
                         - One Mapper and Onereducer
                         - to see the Difference set reducer tasks to more than one (eg. set mapred.reduce.tasks=2;) and the run the above query again.
                         -  The difference comes up when we have more than one reducers, partial results must come up. (LOCAL SORTING HAPPENS)
