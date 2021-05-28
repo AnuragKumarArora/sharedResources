@@ -1,0 +1,247 @@
+Lab 8
+HIVE- Basics
+
+        -1 For the file countries.tsv create
+                -1.1 Managed table or internal
+                       - create database test;
+                       - use test;
+                       - create table country_int (countryName string, year int) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+        
+                -1.2 External table or unmanaged
+                        - create EXTERNAL table country_ext (countryName string, year int) 
+                            ROW FORMAT DELIMITED 
+                            FIELDS TERMINATED BY '\t' 
+                            STORED AS TEXTFILE 
+                            LOCATION '/externaltable/lab8';
+                           
+                -1.3 Describe both the tables.
+                        - describe country_int;
+                        - describe country_ext;
+                        
+                -1.4 Load data into the two tables
+                        - LOAD DATA LOCAL INPATH '/home/arora/Downloads/lab8/Indicator_data.tsv' INTO TABLE ;
+                        - LOAD DATA  INPATH '<hdfs_path>/Indicator_data.tsv' INTO TABLE TABLE;
+                        
+                -1.5 Drop the two table to see the difference between managed an external tables of HIVE
+                        - DROP TABLE country_int; DROP TABLE country_ext;
+                        - observation : 
+                                - Internal table : Managed by hive. On dropping it, the metadata of the table AND the data from the path (default path = /user/hive/warehouse) is removed
+                                - External Table : Unmanaged. On dropping the table only metadata is GONE. 
+                                                   The data still remains at the path provided while creating table.
+
+        -2. Consider the wdi.tsv data set. The description of the columns is as follows:Country Name, Country Code, Indicator Name, Indicator code, reading of 1960, reading of 1961, reading of 1962, reading of 1963,  ….. , reading of 2012
+
+                - 2.1 Create the necessary external table and load the data
+                        - create database test;
+                        - use test;
+                        - create external table wdi (
+                                countryName     string,
+                                countryCode     string,
+                                indicatorName   string,
+                                indicatorCode   string,
+                                reading1960      float,
+                                reading1961      float,
+                                reading1962      float,
+                                reading1963      float,
+                                reading1964      float,
+                                reading1966	 float,
+                                reading1967	 float,
+                                reading1968	 float,
+                                reading1969	 float,
+                                reading1970	 float,
+                                reading1971	 float,
+                                reading1972	 float,
+                                reading1973	 float,
+                                reading1974	 float,
+                                reading1975	 float,
+                                reading1976	 float,
+                                reading1977	 float,
+                                reading1978	 float,
+                                reading1979	 float,
+                                reading1980	 float,
+                                reading1981	 float,
+                                reading1982	 float,
+                                reading1983	 float,
+                                reading1984	 float,
+                                reading1985	 float,
+                                reading1986	 float,
+                                reading1987	 float,
+                                reading1988	 float,
+                                reading1989	 float,
+                                reading1990	 float,
+                                reading1991	 float,
+                                reading1992	 float,
+                                reading1993	 float,
+                                reading1994	 float,
+                                reading1995	 float,
+                                reading1996	 float,
+                                reading1997	 float,
+                                reading1998	 float,
+                                reading1999	 float,
+                                reading2000	 float,
+                                reading2001	 float,
+                                reading2002	 float,
+                                reading2003	 float,
+                                reading2004	 float,
+                                reading2005	 float,
+                                reading2006	 float,
+                                reading2007	 float,
+                                reading2008	 float,
+                                reading2009	 float,
+                                reading2010	 float,
+                                reading2011	 float,
+                                reading2012	 float) 
+                                ROW FORMAT DELIMITED
+                                FIELDS TERMINATED BY '\t'
+                                STORED AS TEXTFILE
+                                LOCATION '/externaltable/lab8';
+                                
+                        - LOAD DATA LOCAL INPATH '/home/arora/Downloads/lab8/Indicator_data.tsv' INTO TABLE wdi;
+                        
+                -2.2.1 Write HiveQL query to Select all the data
+                        - select * from test.wdi;
+
+                -2.2.2 Select all data for the indicator : Foreign direct investment, net inflows (% of GDP)
+                        - select * from test.wdi where indicatorName= 'Foreign direct investment, net inflows (% of GDP)' limit 20;
+
+                -2.2.3 Restrict data to only 2010 and display only those countries where the data is not null
+                        - select distinct(countryNames) from test.wdi where reading2010 is NOT NULL;
+               
+                -2.2.4 Order your data in order of decreasing indicator readings. What is the effect on larger data sets?
+                        - select * from test.wdi order by order by indicatorName desc;
+                        - One Mapper and one reducer. It takes REALLY long time to execute
+
+                -2.2.5 Use sort by order to order your data. What do you observe ?
+                        - select *  from wdi sort by reading2012,reading2011,reading2010,reading2009,reading2008,reading2007,reading2006,reading2005,
+                                reading2004,reading2003,reading2002,reading2001,reading1999,reading1998,reading1997,reading1996,reading1995,reading1994,
+                                reading1993,reading1992,reading1991,reading1990 sort by indicatorCode
+                        - One Mapper and Onereducer
+                        - to see the Difference set reducer tasks to more than one (eg. set mapred.reduce.tasks=2;) and the run the above query again.
+                        -  The difference comes up when we have more than one reducers, partial results must come up. (LOCAL SORTING HAPPENS)
+                           What happens when we do sort by ?
+                           It is responsible for ordering of the rows within a reducer. Only guarantees ordering of rows within a reducer. 
+                           Example : https://github.com/AnuragKumarArora/BigData-and-Analytics/blob/main/Lab8/Screenshot%202021-05-04%20at%2017.10.29.png`
+        
+                -2.7 Modify your reducer such that each reducer gets data of only a single indicator. For this filter your data for two indicators: Trade (% of GDP) and Foreign direct investment, net inflows (% of GDP) and only for the year 2010.
+                        - set mapred.reduce.tasks=2; 
+                        (In Below query no need to write OVERWRITE. It's simply written here to show that this can also be done. Omit OVERWriTE from query and run as it is)
+                        - INSERT OVERWRITE LOCAL DIRECTORY '/home/arora/Downloads/lab8/distribute_test' select reading2010 from wdi where indicatorName IN ('Foreign direct investment, net inflows (% of GDP)', 'Trade (% of GDP)') distribute by indicatorName;
+                        
+                     Note : It will set number of reducers to 2. The records are fetched for 2 indicators and distributed on the basis of those 2 indicators. 
+                            2 reducers will be created and each reducer will have value from distribute by. (that is what distribute by does, ensure non overlapping values will go to same reducer
+                            to check : go to /home/arora/Downloads/lab8/distribute_test, we will be able to see 2 reducer outputs.
+                            
+
+                -2.8 Demonstrate cluster_by operation.
+                        (ideally it should distribute over reducers i.e ensure that same value go in same reducer, and then sort each reducer locally. it will give
+                        N(=2) files with sorted output locally with no 2 same value go in different file
+                        - Cluster by = Distribute By + Sort By
+                        - assuming : set mapred.reduce.tasks=2;
+                        - Query 1: CREATE TABLE wd3(countryname string)
+                        - Query 2: LOAD DATA LOCAL INPATH '/home/arora/Downloads/lab8/test.tsv' INTO TABLE wd3
+                        - Query 3: select * from wd3;  (show data in table)
+                                        A
+                                        A
+                                        F
+                                        E
+                                        F
+                                        B
+                                        F
+                                        C
+                                        A
+                                        B
+                                        H
+                                        E
+                                        E
+                                        D
+                                        C
+                        - Query 4 : INSERT OVERWRITE LOCAL DIRECTORY '/home/arora/Downloads/lab8/distribute_test' select * from wd3 DISTRIBUTE BY col1;
+                                     it provides 2 reducer output in directory
+                                     reducer1: 000000_0
+                                        H
+                                        F
+                                        B
+                                        F
+                                        B
+                                        F
+                                        D
+                                     reducer 2: 000001_0
+                                        C
+                                        E
+                                        E
+                                        A
+                                        C
+                                        E
+                                        A
+                                        A
+                                        
+                          - Query 5: INSERT OVERWRITE LOCAL DIRECTORY '/home/arora/Downloads/lab8/distribute_test' select * from wd3 DISTRIBUTE BY col1 sort by col1;
+                                     distribute and do local sort
+                                     reducer1: 000000_0
+                                        B
+                                        B
+                                        D
+                                        F
+                                        F
+                                        F
+                                        H
+                                     reducer 2: 000001_0
+                                        A
+                                        A
+                                        A
+                                        C
+                                        C
+                                        E
+                                        E
+                                        E
+
+                          - Query 6:INSERT OVERWRITE LOCAL DIRECTORY '/home/arora/Downloads/lab8/distribute_test' select * from wd3 CLUSTER BY col1;
+                                     distribute and do local sort
+                                     reducer1: 000000_0
+                                        B
+                                        B
+                                        D
+                                        F
+                                        F
+                                        F
+                                        H
+                                     reducer 2: 000001_0
+                                        A
+                                        A
+                                        A
+                                        C
+                                        C
+                                        E
+                                        E
+                                        E
+
+                                     
+
+        -3 Create tables for countries.tsv and oecd.tsv. Perform the following joins:
+                 - create table nato_countries(countryName string);
+                 - create table oecd_countries(countryName string, year int) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' ;
+                 - LOAD DATA LOCAL INPATH '/home/arora/Downloads/lab8/nato_countries.tsv' INTO TABLE nato_countries;
+                 - LOAD DATA LOCAL INPATH '/home/arora/Downloads/lab8/oecd_countries.tsv' INTO TABLE oecd_countries;
+                -3.1 All countries that are both NATO and OECD countries
+                     - select nato.countryName from oecd_countries oecd join nato_countries nato on oecd.countryName=nato.countryName;
+                
+                -3.2 All countries that are NATO and not OECD countries
+                     - select nato.countryName  from oecd_countries oecd right  join nato_countries nato on oecd.countryName=nato.countryName where oecd.countryName is NULL;
+                
+                -3.3 All countries that are OECD and not NATO countries
+                     - select oecd.countryName  from oecd_countries oecd left  join nato_countries nato on oecd.countryName=nato.countryName where nato.countryName is NULL;
+   
+                -3.4 Modify the above queries to avoid NULLS 
+                      - can be modified as below:
+                      - select nato.countryName from 
+                         (select countryName from oecd_countries where countryName is not Null) oecd
+                         join 
+                         (select countryName from nato_countries here countryName is not Null) nato 
+                         on 
+                         oecd.countryName=nato.countryName;
+
+        -4 Write a hive script to count the occurrence of words in file. 
+                - create database test;
+                - create table count_num (words array<string>) row format delimited collection items terminated by ',';
+                - LOAD DATA LOCAL INPATH '/home/arora/Downloads/lab8/count_words.csv' OVERWRITE INTO TABLE count_num;
+                - select courses,count(*)  from count_num LATERAL VIEW explode(words) courses_list as courses group by courses;
