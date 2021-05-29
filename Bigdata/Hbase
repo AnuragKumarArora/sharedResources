@@ -50,22 +50,22 @@ Sol2.
 Q3. 	Insert details of two employees each having varying number of email ids and phone numbers.
 
 Sol3.
-      put 'emp','cs_prof_e1','emp_details:fname','anurag'
+      put 'emp','cs_prof_e1','emp_details:fname','shshrukh'
       put 'emp','cs_prof_e1','emp_details:email1','a@b.com'
       put 'emp','cs_prof_e1','emp_details:email2','a@p.com'
       put 'emp','cs_prof_e1','dept_details:name','computer science'
       
-      put 'emp','ec_prof_e2','emp_details:fname','rahul'
+      put 'emp','ec_prof_e2','emp_details:fname','salmaan'
       put 'emp','ec_prof_e2','emp_details:email1','rahul@b.com'
       put 'emp','ec_prof_e2','emp_details:phone','99999999'
       put 'emp','ec_prof_e2','dept_details:name','ECE'
       
-      put 'emp','ec_dir_e2','emp_details:fname','raj'
+      put 'emp','ec_dir_e2','emp_details:fname','aamir'
       put 'emp','ec_dir_e2','emp_details:email1','raj@b.com'
       put 'emp','ec_dir_e2','emp_details:phone','99999999'
       put 'emp','ec_dir_e2','dept_details:name','ECE'
       
-      put 'emp','t1','emp_details:fname','test'
+      put 'emp','t1','emp_details:fname','mahesh babu'
       put 'emp','t1','emp_details:email1','test@b.com'
       put 'emp','t1','emp_details:phone','tttttttt'
       put 'emp','t1','dept_details:name','tct'
