@@ -1,0 +1,111 @@
+Lab 9
+HBase- Basics
+
+./start-hbase.sh 
+hbase shell
+
+
+==========================================================================================================================
+
+Q1.	Consider a university database where the following queries are to be executed:
+        Query 1: Find all employees and their details based on title
+        Query 2: Find all employees and their details for a given department id
+        Query 3: Find all employees and their details for a given department name
+        Query 4: Find all employees and their details for a given department name and title
+    Employee details contain first name, last name, title, email ids, address, phone numbers. 
+    Department details contain full name and abbreviated name.
+    For each build a HBase data model clearly identifying the rowKey, columnfamilies.
+
+Sol1.
+    1. row_key = [tile_empId]
+       column_famlies = 
+            => [Employee_Details] will have cols like (first name, last name, email ids, address, phone numbers)
+            => [Department_Details] will have cols like (DepartmentId, full name and abbreviated name)
+        
+     2. row_key = [DepartmentID_empId]
+        column_famlies = 
+            => [Employee_Details] will have cols like (first name, last name, title, email ids, address, phone numbers)
+            => [Department_Details] will have cols like (full name and abbreviated name)
+     
+     3. row_key = [DepartmentName_empId]
+        column_famlies = 
+            => [Employee_Details] will have cols like (first name, last name, title, email ids, address, phone numbers)
+            => [Department_Details] will have cols like (DepartmentId, full name and abbreviated name)
+            
+     4. row_key = [DepartmentName_Title_empId]
+        column_famlies = 
+            => [Employee_Details] will have cols like (first name, last name, email ids, address, phone numbers)
+            => [Department_Details] will have cols like (DepartmentId and abbreviated name)
+       
+Note : For each query, we create separate table in HBase !
+
+===========================================================================================================================
+
+Q2.	Create a table in HBase for Query4.
+
+Sol2.
+    create 'emp', cf = ['emp_details', 'dept_details']
+    
+===========================================================================================================================
+Q3. 	Insert details of two employees each having varying number of email ids and phone numbers.
+
+Sol3.
+      put 'emp','cs_prof_e1','emp_details:fname','anurag'
+      put 'emp','cs_prof_e1','emp_details:email1','a@b.com'
+      put 'emp','cs_prof_e1','emp_details:email2','a@p.com'
+      put 'emp','cs_prof_e1','dept_details:name','computer science'
+      
+      put 'emp','ec_prof_e2','emp_details:fname','rahul'
+      put 'emp','ec_prof_e2','emp_details:email1','rahul@b.com'
+      put 'emp','ec_prof_e2','emp_details:phone','99999999'
+      put 'emp','ec_prof_e2','dept_details:name','ECE'
+      
+      put 'emp','ec_dir_e2','emp_details:fname','raj'
+      put 'emp','ec_dir_e2','emp_details:email1','raj@b.com'
+      put 'emp','ec_dir_e2','emp_details:phone','99999999'
+      put 'emp','ec_dir_e2','dept_details:name','ECE'
+      
+      put 'emp','t1','emp_details:fname','test'
+      put 'emp','t1','emp_details:email1','test@b.com'
+      put 'emp','t1','emp_details:phone','tttttttt'
+      put 'emp','t1','dept_details:name','tct'
+      
+      
+===========================================================================================================================
+Q4.	Write queries for the following:
+    a.	Display all the data in the table
+        scan 'emp'
+        
+    b.	Display all the row keys in the table
+        scan 'emp',{FILTER=>"KeyOnlyFilter()"}
+        (it will show all the keys with row_id and time stamp. NOT the values) 
+    
+    c.	Does the employee id e2 exist in the table? (print <k,v>, timestamp with row ID ec_prof_e2)
+        get 'emp', 'ec_prof_e2'
+        
+    d.	Find all employees who are Professors
+        scan 'emp', {FILTER=>"RowFilter(=,'substring:prof')"}
+        scan 'emp', {FILTER=>"RowFilter(=,'regexstring:.*prof')"}
+        
+    
+    e.	Find all the email ids of all employees
+        scan 'emp', {FILTER=>"ColumnPrefixFilter('email')"}
+    
+    f.	Find all the email ids and telephone numbers of all employees
+        scan 'emp', {FILTER=>"MultipleColumnPrefixFilter('email','phone')"}
+    
+    g.	Get the first two key –value pairs for each row
+        scan 'emp', {FILTER=>"ColumnCountGetFilter(2)"} 
+        Some strange behaviour for different n values. Need to look
+    
+    h.	Alter the table to add a new column family course taught
+        no need to disable the table
+        alter 'emp', {NAME=> 'course_taught'}
+           
+    i.	Update the email id of any employee
+        put 'emp','cs_prof_e1','emp_details:email1','changedemail@gmail.com'
+        
+    j.	Find all the employees with columns greater than fname
+        scan 'emp',{FILTER=> "QualifierFilter(>,'binary:fname')"}
+=========================================================================================================================
+scan 'emp', {FILTER => "QualifierFilter(>,'binary:fname') AND ValueFilter(=,'binary:ECE')"}
