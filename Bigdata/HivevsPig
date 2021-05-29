@@ -1,0 +1,41 @@
+==> Operation : Arithematic Subtract (Finding delta)
+    Hive : Select MAX-MIN from health.healthData;
+    Pig : delta = FOREACH healthData GENERATE MAX-MIN
+          dump delta
+
+==> Operation : Finding distinct values
+    Hive : select Distinct(condition) from health.healthData;
+    pig : 
+          dist = DISTINCT(FOREACH healthData GENERATE condition);
+          dump dist;
+
+==> Operation : Group by 
+    Hive : select count(*), condition from health.healthData group by condition;
+    pig : 
+          grp = GROUP healthData by condition;
+          cnt = FOREACH grp GENERATE group, COUNT(healthData.condition);
+          dump cnt;
+
+==> Operation : Filter (95%)
+    Hive : Select * from table where condition in ('no stress','interruption');
+    Pig : 
+          filter_95 = FILTER healthData BY condition IN ('no stress','interruption');
+          dump filter_95
+
+==> Operation : FIlter (5%)
+    Hive : Select * from table where condition = 'time pressure';
+    Pig : 
+          filter_5 = FILTER healthData BY condition =='time pressure');
+          dump filter_5 = FILTER healthData BY condition =='time pressure');
+
+==> Operation : Join
+    Hive :
+      select h1.MAX, h2.MAX from 
+      health.healthData h1 join health.healthTest h2
+      on 
+      h1.condition = h2.condition
+
+   Pig :
+      JoinRel = JOIN healthData BY condition, healthTest BY condition;
+      sel = FOREACH JoinRel GENERATE healthData::MIN,healthTest::MAX;
+      dump sel
