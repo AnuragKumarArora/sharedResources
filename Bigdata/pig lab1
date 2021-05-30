@@ -1,0 +1,95 @@
+ Start pig in local mode
+   -  `pig -x local`
+   
+- check history of commands executed #dump is not consodered
+   -  `history`
+   
+- Load a file in Relation A
+   -  `load 'filename' using PigStorage(‘\t’) AS (col1:charArray, col2:int);`
+   -  `x = load 'filename' using PigStorage ('\t') AS (col1:bag{T:tuple(col2:int,col3:int)});`
+   
+- check logical, physical and map-reduce plan
+   -  `explain A`
+
+- Group
+   - `GROUP X BY COL;`
+   - `GROUP X ALL;`
+
+- Run Pig File
+   - `pig -x local <filename>.pig`
+
+
+####Questions#####
+
+ Q1. Create a file that contains the sales data with product number and total sales. A product is sold multiple times with several entries in the file Use your own data.
+      -  `vi /home/anurag_hadoop/pig_test/sales.txt`
+ 
+ Q2. Load the file in grunt.
+ 
+   - a. Without defining the schema. Run Dump and describe the relation. What do you observe?
+      - `A = LOAD '/home/anurag_hadoop/pig_test/sales.txt' USING PigStorage('\t');`
+      - `DUMP A`
+      - `Describe A`
+      - `Observation : No Schema is available for A`
+   
+   - b.	By describing the schema with names and data types for both the fields. Dump and describe the relation. What do you observe?
+      - `B = LOAD '/home/anurag_hadoop/pig_test/sales.txt' USING PigStorage('\t') AS (pdt:charArray, sales:int);`
+      - `DUMP B`
+      - `Describe B`
+      - `Observation : Schema is available for B. B: {pdt: chararray,sales: int}`
+   
+   - c.	By describing the schema with only names and no datatypes. Dump and describe the relation. What do you observe?
+      - `C = LOAD '/home/anurag_hadoop/pig_test/sales.txt' USING PigStorage('\t') AS (pdt:charArray, sales:int);`
+      - `DUMP C`
+      - `Describe C`
+      - `Observation : Schema is available for C. C: {pdt: bytearray,sales: bytearray}`
+
+   - d.	By describing the schema with names and datatype for only total sales. Dump and describe the relation. What do you observe?
+      - `D = LOAD '/home/anurag_hadoop/pig_test/sales.txt' USING PigStorage('\t') AS (pdt,sales:int);`
+      - `DUMP D`
+      - `Describe D`
+      - `Observation : Schema is available for D. D: {pdt: bytearray,sales: int}`
+
+
+Q3. Access the different columns of the relation obtained in 2(b) above using (a) field names, (b) field position and, (c) FOREACH!
+      - (a) field names : 
+         -   `E = FOREACH B GENERATE pdt;`   `F = FOREACH B GENERATE sales;`   `G = FOREACH B GENERATE pdt, sales;`
+      - (b) field position : 
+         -  `H = FOREACH B GENERATE $0`  `I = FOREACH B GENERATE $1`    `J = FOREACH B GENERATE $0, $1`
+      - (c) FOREACH : 
+
+Q4. Filter the relation obtained above to remove all sales values below 10. Dump, describe the resultant relation. Store the relation into local filesystem.
+      -  `K = FILTER B by sales==12;`
+      -  `nn = FILTER B by sales>10`
+
+Q5. Find the total sales for each product.
+       -  `L = GROUP B BY pdt;`
+       -   `M = FOREACH L GENERATE group, SUM(B.sales);`
+
+Q6. Create a file to store temperatures of year 2019 and 2020. 
+         -   `/home/anurag_hadoop/pig_test/stemparatures.txt`
+         -   `B = LOAD '/home/anurag_hadoop/pig_test/stemparatures.txt' USING PigStorage('\t') AS (year:int, month:chararray, temp:int);`
+    
+   Filter out all temperatures above 50 degree. 
+          -   `N = FILTER B BY temp>50;`
+   
+   Find the maximum temperature per year using PIG LATIN. 
+          -   `O = GROUP N BY year;`
+           -   `P = FOREACH O GENERATE group,MAX(O.temp);`
+
+   Dump the result and explain the logical and physical path. 
+          -   `DUMP P;`
+          -   `explain P;`
+
+Q7. Project the first column in the file. Also project the third column and add 2 to the existing temperature for each row.
+      -   `Q = FOREACH B GENERATE $0;`
+      -   `STORE Q INTO '/home/anurag_hadoop/pig_test/temp'`
+      -   `R = FOREACH B GENERATE $2+2`
+      -   `STORE R INTO 'home/anurag_hadoop/pig_test/temp2'`
+
+Q8. Write a macro to group by a key and find the max from the bag. Use this macro to find the maximum temperature.
+      -   `DEFINE max_macro (relation_name, grp_field, max_field) RETURNS Y {
+      -   Z = GROUP $relation_name BY $grp_field;
+      -   $Y = FOREACH Z GENERATE group,MAX($relation_name.$max_field;};`
+      -   `T = max_macro(B, year, temp);`
+      -   `DUMP T`
