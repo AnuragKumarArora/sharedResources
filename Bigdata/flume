@@ -1,0 +1,33 @@
+===conf file====
+agent1.sources = Twitter
+agent1.channels = MemChannel
+agent1.sinks = HDFS
+
+# For each one of the sources, the type is defined
+agent1.sources.Twitter.type = org.apache.flume.source.twitter.TwitterSource
+agent1.sources.Twitter.consumerKey = 
+agent1.sources.Twitter.consumerSecret = 
+agent1.sources.Twitter.accessToken = 
+agent1.sources.Twitter.accessTokenSecret = 
+
+agent1.sources.Twitter.keywords = "Narendra Modi"
+# The channel can be defined as follows.
+#agent1.channels.MemChannel.type = memory
+
+
+# Each sink's type must be defined
+agent1.sinks.HDFS.type = hdfs
+agent1.sinks.HDFS.hdfs.path = hdfs://localhost:9000/user/arora/test/
+
+
+#Specify the channel the sink should use
+#binding sink to the channel
+agent1.sinks.HDFS.channel = MemChannel
+
+#binding the source to channel
+agent1.sources.Twitter.channels = MemChannel
+
+# Each channel's type is defined.
+agent1.channels.MemChannel.type = memory
+agent1.channels.MemChannel.transactionCapacity = 1000
+agent1.channels.MemChannel.capacity = 1000
