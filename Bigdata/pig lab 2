@@ -1,0 +1,31 @@
+1. Demonstrate TOTUPLE, TOBAG
+    - stud = LOAD '/home/arora/labs/testdata/pig_data/students.txt' using PigStorage(',') as (id:int, name:chararray, age:int, loc:chararray);
+    - all_stu = FOREACH stud generate id,name;
+    - tobag_stu = FOREACH stud generate TOBAG(id,name);
+    - totup_stu = FOREACH stud generate TOTUPLE(id,name);
+
+
+
+stop_words.txt
+the,and,up,to,a,of 
+
+
+2. Consider the following document
+   “Jack and Jill went up the hill to fetch a pale of water. Jack fell down and hit the ground and Jill came tumbling after”.
+   Write a pig latin script to process this document: 
+    2.1 Assume the words the, and, up, to, a, of are stop words and are to be removed. 
+      inp = LOAD '/home/arora/labs/testdata/pig_data/ques2.txt' as (col:chararray);
+      stop_words_inp = LOAD '/home/arora/labs/testdata/pig_data/stop_words.txt' as (col_stops:chararray);
+      words = FOREACH inp generate FLATTEN(STRSPLITTOBAG(REPLACE(col,'\\.',''))) as col_name;
+      stop_words = FOREACH stop_words_inp generate FLATTEN(STRSPLITTOBAG(col_stops,',')) as stop_col_name;
+      joining = JOIN words BY col_name LEFT, stop_words BY stop_col_name;
+      filtering = FILTER joining by $1 is NULL;
+      remaining_words = FOREACH filtering GENERATE $0 as coll;
+        
+    2.2 Count the occurrence of the remaining words in the document.  
+        - grps = GROUP remaining_words by coll; or grps = GROUP remaining_words by $0;
+        - fin = FOREACH grps GENERATE group, COUNT(remaining_words.coll);
+
+      (STRSPLITTOBAG = split the string and return splitted strings to bag (tokenize also same), FLATTEN - convert bag to separate tuples)
+    2.3 Store the output in a file
+        - STORE fin INTO 'home/arora/labs/testdata/pig_data/out'
