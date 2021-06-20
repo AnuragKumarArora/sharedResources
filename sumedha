@@ -1,0 +1,7 @@
+  create external table IF NOT EXISTS categories_fct (
+  CategoryId String,
+  CategoryName String)
+  ROW FORMAT DELIMITED
+  FIELDS TERMINATED BY ','
+  STORED AS TEXTFILE
+  LOCATION '/youtubeData/layer1/categories';
