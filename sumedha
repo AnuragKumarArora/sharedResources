@@ -2,6 +2,6 @@
   CategoryId String,
   CategoryName String)
   ROW FORMAT DELIMITED
-  FIELDS TERMINATED BY ','
+  FIELDS TERMINATED BY '\t'
   STORED AS TEXTFILE
   LOCATION '/youtubeData/layer1/categories';
