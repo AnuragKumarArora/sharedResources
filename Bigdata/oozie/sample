@@ -1,0 +1,53 @@
+<workflow-app name=“Project-Workflow" xmlns="uri:oozie:workflow:0.1"> 
+	 <start to=“MR Filter"/>
+
+	<action name = “MR Filter”>
+		<map-reduce>
+			<job-tracker>abc:8088</job-tracker>
+			<name-node>hdfs://localhost</name-node>
+		</map-reduce>
+		<ok to =“PigETL”/>
+		<error to=“Kill”/>  
+	</action>
+  
+	--Another Action	
+  <action name = “PigETL”>
+		<pig>
+			<job-tracker>abc:8088</job-tracker>
+			<name-node>hdfs://localhost</name-node>
+			 <script> pigscript.pig</script> 
+			<argument>INPUT=${inputDir}</argument> 
+			<argument>OUTPUT=${outputDir}/pig-output</argument> 
+		</pig>
+		<ok to =“End”/>
+		<error to=“Kill”/>
+	</action>	
+  
+      <action name="myfirsthivejob">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-traker>foo:9001</job-tracker>
+            <name-node>bar:9000</name-node>
+            <prepare>
+                <delete path="${jobOutput}"/>
+            </prepare>
+            <configuration>
+                <property>
+                    <name>mapred.compress.map.output</name>
+                    <value>true</value>
+                </property>
+                <property>
+                    <name>oozie.hive.defaults</name>
+                    <value>/usr/foo/hive-0.6-default.xml</value>
+                </property>
+            </configuration>
+            <script>myscript.q</script>
+            <param>InputDir=/home/tucu/input-data</param>
+            <param>OutputDir=${jobOutput}</param>
+        </hive>
+        <ok to="myotherjob"/>
+        <error to="errorcleanup"/>
+    </action>
+  
+	 <end name=“End"/>
+	<kill name = “Kill”> <message> Failed </message> </kill>
+	</workflow-app>
